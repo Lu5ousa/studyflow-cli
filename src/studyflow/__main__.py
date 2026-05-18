@@ -8,48 +8,29 @@ from studyflow.app import StudyFlowApp
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(
-        prog="studyflow",
-        description="Organizador de estudos em linha de comando.",
-    )
-    parser.add_argument(
-        "--data-file",
-        default="data/study_tasks.json",
-        help="Caminho do arquivo JSON usado para armazenar as tarefas.",
-    )
-    parser.add_argument(
-        "--version",
-        action="version",
-        version=f"studyflow-cli {__version__}",
-    )
-
+    parser = argparse.ArgumentParser(prog="studyflow", description="Organizador de estudos em linha de comando.")
+    parser.add_argument("--data-file", default="data/study_tasks.json")
+    parser.add_argument("--version", action="version", version=f"studyflow-cli {__version__}")
     subparsers = parser.add_subparsers(dest="command", required=True)
 
-    add_parser = subparsers.add_parser("add", help="Adiciona uma nova tarefa de estudo.")
-    add_parser.add_argument("--titulo", required=True, help="Título da tarefa.")
-    add_parser.add_argument("--materia", required=True, help="Matéria relacionada.")
-    add_parser.add_argument("--prazo", required=True, help="Prazo no formato YYYY-MM-DD.")
-    add_parser.add_argument(
-        "--prioridade",
-        required=True,
-        choices=["baixa", "media", "alta"],
-        help="Prioridade da tarefa.",
-    )
+    add_p = subparsers.add_parser("add", help="Adiciona uma nova tarefa.")
+    add_p.add_argument("--titulo", required=True)
+    add_p.add_argument("--materia", required=True)
+    add_p.add_argument("--prazo", required=True)
+    add_p.add_argument("--prioridade", required=True, choices=["baixa", "media", "alta"])
 
-    list_parser = subparsers.add_parser("list", help="Lista as tarefas cadastradas.")
-    list_parser.add_argument(
-        "--status",
-        choices=["pendente", "concluida"],
-        help="Filtra por status.",
-    )
+    list_p = subparsers.add_parser("list", help="Lista as tarefas.")
+    list_p.add_argument("--status", choices=["pendente", "concluida"])
 
-    complete_parser = subparsers.add_parser("complete", help="Marca uma tarefa como concluída.")
-    complete_parser.add_argument("id", type=int, help="ID da tarefa.")
+    complete_p = subparsers.add_parser("complete", help="Conclui uma tarefa.")
+    complete_p.add_argument("id", type=int)
 
-    remove_parser = subparsers.add_parser("remove", help="Remove uma tarefa.")
-    remove_parser.add_argument("id", type=int, help="ID da tarefa.")
+    remove_p = subparsers.add_parser("remove", help="Remove uma tarefa.")
+    remove_p.add_argument("id", type=int)
 
-    subparsers.add_parser("summary", help="Exibe um resumo das tarefas.")
+    subparsers.add_parser("summary", help="Resumo das tarefas.")
+    subparsers.add_parser("quote", help="Exibe uma citação motivacional via API.")
+
     return parser
 
 
@@ -63,39 +44,35 @@ def main() -> int:
             task = app.add_task(args.titulo, args.materia, args.prazo, args.prioridade)
             print(f"Tarefa adicionada com sucesso: #{task.id} - {task.titulo}")
             return 0
-
         if args.command == "list":
             tasks = app.list_tasks(status=args.status)
             if not tasks:
                 print("Nenhuma tarefa encontrada.")
                 return 0
-
             for task in tasks:
-                print(
-                    f"#{task.id} | {task.titulo} | {task.materia} | {task.prazo} | "
-                    f"{task.prioridade} | {task.status}"
-                )
+                print(f"#{task.id} | {task.titulo} | {task.materia} | {task.prazo} | {task.prioridade} | {task.status}")
             return 0
-
         if args.command == "complete":
             task = app.complete_task(args.id)
             print(f"Tarefa concluída: #{task.id} - {task.titulo}")
             return 0
-
         if args.command == "remove":
             app.remove_task(args.id)
             print(f"Tarefa removida com sucesso: #{args.id}")
             return 0
-
         if args.command == "summary":
-            summary = app.summary()
+            s = app.summary()
             print("Resumo do StudyFlow")
-            print(f"- Total de tarefas: {summary['total']}")
-            print(f"- Pendentes: {summary['pendentes']}")
-            print(f"- Concluídas: {summary['concluidas']}")
-            print(f"- Alta prioridade: {summary['alta_prioridade']}")
+            print(f"- Total de tarefas: {s['total']}")
+            print(f"- Pendentes: {s['pendentes']}")
+            print(f"- Concluídas: {s['concluidas']}")
+            print(f"- Alta prioridade: {s['alta_prioridade']}")
             return 0
-
+        if args.command == "quote":
+            print("Buscando frase motivacional...")
+            result = app.get_quote()
+            print(f'\n💬 Frase do momento:\n   "{result["quote"]}"\n   — {result["author"]}\n')
+            return 0
     except ValueError as error:
         print(f"Erro: {error}")
         return 1
