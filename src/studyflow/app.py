@@ -1,7 +1,5 @@
 """Lógica de negócio do StudyFlow CLI."""
-
 from __future__ import annotations
-
 import re
 from pathlib import Path
 
@@ -10,7 +8,6 @@ from studyflow.storage import Task, load_tasks, save_tasks
 
 _DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 _PRIORIDADES_VALIDAS = {"baixa", "media", "alta"}
-
 
 class StudyFlowApp:
     def __init__(self, data_file: Path) -> None:
@@ -29,9 +26,18 @@ class StudyFlowApp:
             raise ValueError("Prazo deve estar no formato YYYY-MM-DD")
         if prioridade not in _PRIORIDADES_VALIDAS:
             raise ValueError(f"Prioridade inválida: {prioridade!r}")
+
         tasks = self._load()
         next_id = max((t.id for t in tasks), default=0) + 1
-        task = Task(id=next_id, titulo=titulo.strip(), materia=materia, prazo=prazo, prioridade=prioridade)
+        
+        task = Task(
+            id=next_id,
+            titulo=titulo.strip(),
+            materia=materia,
+            prazo=prazo,
+            prioridade=prioridade
+        )
+        
         tasks.append(task)
         self._save(tasks)
         return task
