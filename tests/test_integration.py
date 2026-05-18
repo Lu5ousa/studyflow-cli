@@ -9,6 +9,7 @@ import requests as req
 
 from studyflow.api import fetch_motivational_quote
 
+
 def _mock(quote, author):
     m = MagicMock()
     m.json.return_value = [{"q": quote, "a": author}]

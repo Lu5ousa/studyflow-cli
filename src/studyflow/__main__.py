@@ -1,8 +1,11 @@
 from __future__ import annotations
+
 import argparse
 from pathlib import Path
+
 from studyflow import __version__
 from studyflow.app import StudyFlowApp
+
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
