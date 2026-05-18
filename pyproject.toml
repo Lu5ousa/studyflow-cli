@@ -12,7 +12,9 @@ authors = [
   { name = "Lucas Ferreira de Sousa" }
 ]
 license = { text = "MIT" }
-dependencies = []
+dependencies = [
+    "requests",
+]
 keywords = ["cli", "estudos", "produtividade", "bootcamp"]
 classifiers = [
   "Programming Language :: Python :: 3",

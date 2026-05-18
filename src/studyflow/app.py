@@ -1,108 +1,78 @@
+"""Lógica de negócio do StudyFlow CLI."""
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass
-from datetime import datetime
+import re
 from pathlib import Path
-from typing import Iterable
 
-from studyflow.storage import JsonStorage
+from studyflow.api import fetch_motivational_quote
+from studyflow.storage import Task, load_tasks, save_tasks
 
-VALID_PRIORITIES = {"baixa", "media", "alta"}
-VALID_STATUS = {"pendente", "concluida"}
-DATE_FORMAT = "%Y-%m-%d"
-
-
-@dataclass(slots=True)
-class Task:
-    id: int
-    titulo: str
-    materia: str
-    prazo: str
-    prioridade: str
-    status: str = "pendente"
-
+_DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
+_PRIORIDADES_VALIDAS = {"baixa", "media", "alta"}
 
 class StudyFlowApp:
-    def __init__(self, data_file: str | Path = "data/study_tasks.json") -> None:
-        self.storage = JsonStorage(Path(data_file))
+    def __init__(self, data_file: Path) -> None:
+        self._path = data_file
+
+    def _load(self) -> list[Task]:
+        return load_tasks(self._path)
+
+    def _save(self, tasks: list[Task]) -> None:
+        save_tasks(self._path, tasks)
 
     def add_task(self, titulo: str, materia: str, prazo: str, prioridade: str) -> Task:
-        titulo = titulo.strip()
-        materia = materia.strip()
-        prioridade = prioridade.strip().lower()
+        if not titulo.strip():
+            raise ValueError("título não pode estar vazio")
+        if not _DATE_RE.match(prazo):
+            raise ValueError("Prazo deve estar no formato YYYY-MM-DD")
+        if prioridade not in _PRIORIDADES_VALIDAS:
+            raise ValueError(f"Prioridade inválida: {prioridade!r}")
 
-        if not titulo:
-            raise ValueError("O título não pode estar vazio.")
-        if not materia:
-            raise ValueError("A matéria não pode estar vazia.")
-        if prioridade not in VALID_PRIORITIES:
-            raise ValueError("A prioridade deve ser: baixa, media ou alta.")
-        self._validate_date(prazo)
-
-        tasks = self._load_tasks()
-        new_task = Task(
-            id=self._next_id(tasks),
-            titulo=titulo,
+        tasks = self._load()
+        next_id = max((t.id for t in tasks), default=0) + 1
+        
+        task = Task(
+            id=next_id,
+            titulo=titulo.strip(),
             materia=materia,
             prazo=prazo,
-            prioridade=prioridade,
+            prioridade=prioridade
         )
-        tasks.append(new_task)
-        self._save_tasks(tasks)
-        return new_task
+        
+        tasks.append(task)
+        self._save(tasks)
+        return task
 
     def list_tasks(self, status: str | None = None) -> list[Task]:
-        if status is not None:
-            status = status.strip().lower()
-            if status not in VALID_STATUS:
-                raise ValueError("O status deve ser: pendente ou concluida.")
-
-        tasks = self._load_tasks()
-        if status is None:
-            return tasks
-        return [task for task in tasks if task.status == status]
+        tasks = self._load()
+        if status:
+            tasks = [t for t in tasks if t.status == status]
+        return tasks
 
     def complete_task(self, task_id: int) -> Task:
-        tasks = self._load_tasks()
+        tasks = self._load()
         for task in tasks:
             if task.id == task_id:
                 task.status = "concluida"
-                self._save_tasks(tasks)
+                self._save(tasks)
                 return task
-        raise ValueError("Tarefa não encontrada.")
+        raise ValueError(f"Tarefa não encontrada: #{task_id}")
 
     def remove_task(self, task_id: int) -> None:
-        tasks = self._load_tasks()
-        remaining_tasks = [task for task in tasks if task.id != task_id]
-        if len(remaining_tasks) == len(tasks):
-            raise ValueError("Tarefa não encontrada.")
-        self._save_tasks(remaining_tasks)
+        tasks = self._load()
+        new_tasks = [t for t in tasks if t.id != task_id]
+        if len(new_tasks) == len(tasks):
+            raise ValueError(f"Tarefa não encontrada: #{task_id}")
+        self._save(new_tasks)
 
     def summary(self) -> dict[str, int]:
-        tasks = self._load_tasks()
+        tasks = self._load()
         return {
             "total": len(tasks),
-            "pendentes": sum(task.status == "pendente" for task in tasks),
-            "concluidas": sum(task.status == "concluida" for task in tasks),
-            "alta_prioridade": sum(task.prioridade == "alta" for task in tasks),
+            "pendentes": sum(1 for t in tasks if t.status == "pendente"),
+            "concluidas": sum(1 for t in tasks if t.status == "concluida"),
+            "alta_prioridade": sum(1 for t in tasks if t.prioridade == "alta"),
         }
 
-    def _load_tasks(self) -> list[Task]:
-        raw_data = self.storage.load()
-        return [Task(**task) for task in raw_data]
-
-    def _save_tasks(self, tasks: Iterable[Task]) -> None:
-        self.storage.save([asdict(task) for task in tasks])
-
-    @staticmethod
-    def _next_id(tasks: list[Task]) -> int:
-        if not tasks:
-            return 1
-        return max(task.id for task in tasks) + 1
-
-    @staticmethod
-    def _validate_date(prazo: str) -> None:
-        try:
-            datetime.strptime(prazo, DATE_FORMAT)
-        except ValueError as error:
-            raise ValueError("O prazo deve estar no formato YYYY-MM-DD.") from error
+    def get_quote(self) -> dict[str, str]:
+        return fetch_motivational_quote()
