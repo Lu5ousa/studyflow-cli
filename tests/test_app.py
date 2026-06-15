@@ -1,7 +1,7 @@
 """Testes unitários para StudyFlowApp com Supabase mockado."""
 from __future__ import annotations
 
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pytest
 
@@ -10,7 +10,10 @@ from studyflow.database import Task
 
 
 def _make_task(**kwargs) -> Task:
-    defaults = dict(id=1, titulo="Tarefa Teste", materia="Matéria", prazo="2026-04-20", prioridade="alta", status="pendente")
+    defaults = dict(
+        id=1, titulo="Tarefa Teste", materia="Matéria",
+        prazo="2026-04-20", prioridade="alta", status="pendente",
+    )
     defaults.update(kwargs)
     return Task(**defaults)
 
@@ -31,7 +34,9 @@ def test_add_task_creates_valid_record(app: StudyFlowApp) -> None:
             prazo="2026-04-20",
             prioridade="alta",
         )
-    mock_insert.assert_called_once_with("Revisar lógica de programação", "Bootcamp", "2026-04-20", "alta")
+    mock_insert.assert_called_once_with(
+        "Revisar lógica de programação", "Bootcamp", "2026-04-20", "alta"
+    )
     assert result.id == 1
     assert result.titulo == "Revisar lógica de programação"
     assert result.status == "pendente"
@@ -80,7 +85,8 @@ def test_complete_task_updates_status(app: StudyFlowApp) -> None:
 
 
 def test_complete_task_raises_if_not_found(app: StudyFlowApp) -> None:
-    with patch("studyflow.app.update_task_status", side_effect=ValueError("Tarefa não encontrada: #99")):
+    err = ValueError("Tarefa não encontrada: #99")
+    with patch("studyflow.app.update_task_status", side_effect=err):
         with pytest.raises(ValueError, match="Tarefa não encontrada"):
             app.complete_task(99)
 
