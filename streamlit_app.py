@@ -5,7 +5,6 @@ st.set_page_config(page_title="StudyFlow", page_icon="📚")
 st.title("📚 StudyFlow CLI")
 st.caption("Organize sua rotina acadêmica.")
 st.markdown("---")
-
 st.markdown("### 💬 Frase motivacional")
 
 if "frase" not in st.session_state:
@@ -14,7 +13,7 @@ if "frase" not in st.session_state:
         d = r.json()
         st.session_state.frase = f'"{d[0]["q"]}" — {d[0]["a"]}'
     except Exception:
-        st.session_state.frase = "Estude sempre. — StudyFlow"
+        st.session_state.frase = "Estude sempre."
 
 if st.button("🔄 Nova frase"):
     try:
