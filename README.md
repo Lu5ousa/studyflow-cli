@@ -31,7 +31,8 @@ O **StudyFlow CLI** oferece uma forma simples de cadastrar, listar, concluir e r
 ## 5. Tecnologias utilizadas
 - Python 3.11+
 - `argparse` para interface CLI
-- JSON para persistência dos dados
+- **Supabase (PostgreSQL)** para persistência de dados em nuvem
+- `supabase-py` para integração com o banco de dados
 - `requests` para consumo de API REST externa
 - ZenQuotes API para citações motivacionais
 - `pytest` para testes automatizados
@@ -41,3 +42,63 @@ O **StudyFlow CLI** oferece uma forma simples de cadastrar, listar, concluir e r
 
 ## 6. Estrutura do projeto
 ```text
+studyflow-cli/
+├── src/studyflow/
+│   ├── __init__.py
+│   ├── __main__.py
+│   ├── api.py
+│   ├── app.py
+│   └── database.py       ← integração Supabase
+├── tests/
+│   ├── test_app.py
+│   └── test_integration.py
+├── streamlit_app.py
+├── pyproject.toml
+└── .env.example
+```
+
+## 7. Como rodar localmente
+
+```bash
+# Clone o repositório
+git clone https://github.com/Lu5ousa/studyflow-cli.git
+cd studyflow-cli
+
+# Crie e ative o ambiente virtual
+python -m venv .venv
+source .venv/bin/activate  # Windows: .venv\Scripts\activate
+
+# Instale as dependências
+pip install -e ".[dev]"
+
+# Configure as variáveis de ambiente
+cp .env.example .env
+# Edite o .env com suas chaves do Supabase
+
+# Rode os testes
+pytest
+
+# Rode o linter
+ruff check .
+
+# Inicie a interface web
+streamlit run streamlit_app.py
+```
+
+## 8. Variáveis de Ambiente
+
+| Variável | Descrição |
+|---|---|
+| `SUPABASE_URL` | URL do projeto Supabase |
+| `SUPABASE_KEY` | Chave anon/public do Supabase |
+
+## 👥 Equipe
+
+| Nome | RA |
+|---|---|
+| Lucas Ferreira de Sousa | 22510970 |
+| Arthur Amaral Dos Santos | 22506429 |
+
+---
+
+BootCamp — Etapa 3: Trabalho em Equipe, Banco de Dados e Code Review
