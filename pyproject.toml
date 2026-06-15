@@ -14,6 +14,8 @@ authors = [
 license = { text = "MIT" }
 dependencies = [
     "requests",
+    "supabase>=2.0.0",
+    "streamlit>=1.35.0",
 ]
 keywords = ["cli", "estudos", "produtividade", "bootcamp"]
 classifiers = [
