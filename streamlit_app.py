@@ -1,13 +1,10 @@
 """Interface web do StudyFlow CLI via Streamlit."""
 from __future__ import annotations
 
-import os
-
 import streamlit as st
-from supabase import create_client
 
-from studyflow.app import StudyFlowApp
 from studyflow.api import fetch_motivational_quote
+from studyflow.app import StudyFlowApp
 
 # ── Configuração da página ───────────────────────────────────────────────────
 st.set_page_config(

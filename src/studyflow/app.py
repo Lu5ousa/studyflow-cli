@@ -3,8 +3,8 @@ from __future__ import annotations
 
 import re
 
-from studyflow.database import Task, delete_task, insert_task, load_tasks, update_task_status
 from studyflow.api import fetch_motivational_quote
+from studyflow.database import Task, delete_task, insert_task, load_tasks, update_task_status
 
 _DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 _PRIORIDADES_VALIDAS = {"baixa", "media", "alta"}
