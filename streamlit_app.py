@@ -1,4 +1,5 @@
 """Interface web do StudyFlow CLI via Streamlit."""
+# Equipe: Lucas Ferreira de Sousa e Arthur Amaral Dos Santos
 from __future__ import annotations
 
 import streamlit as st
